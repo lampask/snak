@@ -3,6 +3,7 @@ from views.game import Snak
 from views.setup import Setup
 import globals.globals as globals
 import globals.constants as constants
+
 # Views
 game = None
 startup = None
@@ -21,8 +22,7 @@ class OptionsBoard(Canvas):
         
         self.quick_play = Button(self, text="Quick play", command=self.play, anchor=CENTER)
         self.quick_play.configure(width = constants.UI_BUTTON_WIDTH, background=globals.BOARD_COLOR, foreground=globals.UI_OUTLINE, highlightthickness=5, relief = FLAT)
-        self.qp_window = self.create_window(globals.BOARD_WIDTH/2, 35, anchor=CENTER, window=self.quick_play)
-        
+        self.qp_window = self.create_window(globals.BOARD_WIDTH/2, 35, anchor=CENTER, window=self.quick_play)     
     
     def play(self):
         global game
