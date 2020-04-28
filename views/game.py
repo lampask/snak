@@ -2,9 +2,8 @@ import sys
 import random
 from PIL import Image, ImageTk
 from tkinter import Frame, Canvas, ALL, NW
-import utils
-import views
-import globals
+import helpers.utils as utils
+import globals.globals as globals
 
 class Board(Canvas):
 

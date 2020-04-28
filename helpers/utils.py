@@ -1,5 +1,5 @@
 from PIL import Image, ImageDraw, ImageTk
-import globals
+import globals.globals as globals
 from enum import Enum
 
 def rgb2rgbInt(rgb):
