@@ -9,7 +9,7 @@ DOT_SIZE = 10
 MAX_RAND_POS = 27
 
 BOARD_COLOR = Color('#000')
-UI_OUTLINE = Color('#fff')
+UI_OUTLINE = Color('#067')
 SNAK_COLOR = Color('#fff')
 SNAK_OUTLINE = Color('#666')
 SNAK_SNACK_COLOR = Color('#212121')

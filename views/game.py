@@ -1,9 +1,11 @@
 import sys
 import random
+import string
 from PIL import Image, ImageTk
-from tkinter import Frame, Canvas, ALL, NW
+from tkinter import Frame, Canvas, ALL, NW, Button, CENTER, FLAT
 import helpers.utils as utils
 import globals.globals as globals
+import globals.constants as constants
 
 class Board(Canvas):
 
@@ -11,14 +13,17 @@ class Board(Canvas):
         super().__init__(width=globals.BOARD_WIDTH, height=globals.BOARD_HEIGHT,
             background="black", highlightthickness=0)
         
-        self.bind_all('<<Tick>>', self.tickEvent)
         self.initGame()
+        self.bind_all('p', self.pause)
+        self.bind_all('r', self.restart)
         self.pack()
 
 
     def initGame(self):
         '''initializes game'''
 
+        globals.gameStatus = globals.GameState.IN_GAME
+        
         self.inGame = True
         self.dots = 3
         self.score = 0
@@ -35,8 +40,11 @@ class Board(Canvas):
 
         self.createObjects()
         self.locateApple()
+        
         self.bind_all("<Key>", self.onKeyPressed)
-        self.after(globals.DELAY, self.onTimer)
+        self.bind_all('<<Tick>>', self.tickEvent)
+        
+        self.job = self.after(globals.DELAY, self.onTimer)
 
 
     def loadImages(self):
@@ -57,7 +65,7 @@ class Board(Canvas):
         '''creates objects on Canvas'''
 
         self.create_text(30, 10, text="Score: {0}".format(self.score),
-                         tag="score", fill="white")
+                         tag="score", fill=globals.UI_OUTLINE)
         self.create_image(self.appleX, self.appleY, image=self.apple,
             anchor=NW, tag="apple")
         self.create_image(50, 50, image=self.head, anchor=NW,  tag="head")
@@ -147,8 +155,12 @@ class Board(Canvas):
 
     def onKeyPressed(self, e):
         '''controls direction variables with cursor keys'''
-
+                
         key = e.keysym
+
+        if globals.gameStatus == globals.GameState.GAME_OVER:
+            if key in string.ascii_lowercase:
+                self.restart(None)
 
         LEFT_CURSOR_KEY = "Left"
         if key == LEFT_CURSOR_KEY and self.moveX <= 0:
@@ -195,7 +207,7 @@ class Board(Canvas):
     def tickEvent(self, event):
         for ui in self.find_withtag("pause"):
             self.delete(ui)
-        self.after(globals.DELAY, self.onTimer)
+        self.job = self.after(globals.DELAY, self.onTimer)
     
     def drawScore(self):
         '''draws score'''
@@ -211,7 +223,23 @@ class Board(Canvas):
         self.delete(ALL)
         self.create_text(self.winfo_width() /2, self.winfo_height()/2,
             text="Game Over with score {0}".format(self.score), fill=globals.UI_OUTLINE)
-
+        self.retry = Button(self, text="Retry", command=lambda: self.restart(None), anchor=CENTER)
+        self.retry.configure(width = constants.UI_BUTTON_WIDTH, background=globals.BOARD_COLOR, foreground=globals.UI_OUTLINE, highlightbackground=globals.UI_OUTLINE, activebackground=globals.UI_OUTLINE, highlightthickness=5, relief = FLAT)
+        self.create_window(globals.BOARD_WIDTH/2, 20*constants.UI_BUTTON_WIDTH, anchor=CENTER, window=self.retry)
+        
+    def restart(self, e):
+        self.delete(ALL)
+        if self.job is not None:
+            self.after_cancel(self.job)
+        self.initGame()
+        
+    def pause(self, e):
+        if globals.gamePaused == True:
+            globals.gamePaused = False
+            self.event_generate('<<Tick>>')
+        else:
+            globals.gamePaused = True
+        
 
 class Snak(Frame):
 
@@ -219,7 +247,6 @@ class Snak(Frame):
         super().__init__()
 
         self.master.title('The Snak game')
-        globals.gameStatus = globals.GameState.IN_GAME
         globals.gamePaused = False
         self.board = Board()
         self.pack()

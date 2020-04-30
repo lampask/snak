@@ -1,4 +1,4 @@
-from tkinter import Frame, Canvas
+from tkinter import Toplevel, Frame, Canvas, colorchooser
 
-class Setup(Frame):
+class Setup(Toplevel):
     pass
