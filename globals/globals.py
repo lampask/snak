@@ -1,5 +1,7 @@
 from colour import Color
 from enum import Enum
+from helpers.setting import Setting
+from events import Events
 
 BOARD_WIDTH = 300
 BOARD_HEIGHT = 300
@@ -9,7 +11,7 @@ DOT_SIZE = 10
 MAX_RAND_POS = 27
 
 BOARD_COLOR = Color('#000')
-UI_OUTLINE = Color('#067')
+UI_OUTLINE = Color('#19fc1d')
 SNAK_COLOR = Color('#fff')
 SNAK_OUTLINE = Color('#666')
 SNAK_SNACK_COLOR = Color('#212121')
@@ -20,5 +22,8 @@ class GameState(Enum):
     IN_GAME = 1,
     GAME_OVER = 2
 
-gamePaused = False
-gameStatus = GameState.NON
+
+events = Events()
+gamePaused = Setting(False)
+gameStatus = Setting(GameState.NON)
+volume = Setting(True)

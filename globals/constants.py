@@ -1,3 +1,4 @@
 BASE_FRAME_WIDTH = 100
 BASE_FRAME_HEIGHT = 100
 UI_BUTTON_WIDTH = 10
+GIT_URL = 'https://github.com/lampask/snak'
