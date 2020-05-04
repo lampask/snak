@@ -1,30 +1,41 @@
-from tkinter import Frame, Scrollbar, Button, Listbox, RIGHT, Y, X, END, BOTH, FLAT, SINGLE
+from tkinter import Scrollbar, Listbox, RIGHT, Y, X, END, BOTH, SINGLE, CENTER
+from helpers.utils import GameFrame, GameButton, GameListbox, GameScrollbar
 import globals.globals as globals
 
 
-class Stats(Frame):
+class Stats(GameFrame):
 
     def __init__(self, parent, controller):
-        Frame.__init__(self, parent)
+        GameFrame.__init__(self, parent)
         self.controller = controller
         self.title = 'Game Stats - The Snak'
 
-        listbox = Listbox(self, bg=globals.BOARD_COLOR, fg=globals.UI_OUTLINE, selectbackground=globals.UI_OUTLINE,
-                          selectforeground=globals.BOARD_COLOR, highlightbackground=globals.UI_OUTLINE, selectmode=SINGLE)
-        listbox.pack(fill=BOTH, expand=1)
+        self.listbox = GameListbox(self)
+        self.listbox.pack(fill=BOTH, expand=1)
 
-        self.startup = lambda: listbox.yview_moveto(0)
+        self.startup = lambda: self.listbox.yview_moveto(0)
 
-        scrollbar = Scrollbar(listbox, bg=globals.UI_OUTLINE, troughcolor=globals.BOARD_COLOR)
+        scrollbar = GameScrollbar(self.listbox)
         scrollbar.pack(side=RIGHT, fill=Y)
 
-        button = Button(self, text="Back", command=lambda: self.controller.show_frame("Startup"))
-        button.configure(background=globals.BOARD_COLOR, foreground=globals.UI_OUTLINE, highlightbackground=globals.UI_OUTLINE,
-                         activebackground=globals.UI_OUTLINE, highlightthickness=5, relief=FLAT)
-        button.pack(fill=X)
+        GameButton(self, text="Back", command=lambda: self.controller.show_frame("Startup")).pack(fill=X)
 
-        for i in range(100):
-            listbox.insert(END, i)
+        self.update()
 
-        listbox.config(yscrollcommand=scrollbar.set)
-        scrollbar.config(command=listbox.yview)
+        self.listbox.config(yscrollcommand=scrollbar.set, justify=CENTER)
+        scrollbar.config(command=self.listbox.yview)
+
+        globals.events.data_changed += self.update
+
+    def update(self):
+        self.listbox.delete(0, END)
+        self.listbox.insert(END, '')
+        self.listbox.insert(END, '\\/ -=_=-     Stats     -=_=- \\/')
+        self.listbox.insert(END, '')
+        for (k, v) in globals.stats.items():
+            self.listbox.insert(END, f"{k.replace('_', ' ')}: {v.get()}")
+        self.listbox.insert(END, '')
+        self.listbox.insert(END, '\\/ -=_=- Achievements -=_=- \\/')
+        self.listbox.insert(END, '')
+        for (k, v) in globals.achievements.items():
+            self.listbox.insert(END, f"{k.replace('_', ' ')}:   {'(Obtained)' if v.get() else '(Not obtained)'}")

@@ -1,19 +1,20 @@
 from tkinter import Frame, Scrollbar, Listbox, RIGHT, Y, END, BOTH, CENTER, DISABLED
+from helpers.utils import GameFrame, GameListbox, GameScrollbar
 import globals.globals as globals
 
 
-class Credits(Frame):
+class Credits(GameFrame):
 
     def __init__(self, parent, controller):
-        Frame.__init__(self, parent)
+        GameFrame.__init__(self, parent)
         self.controller = controller
         self.title = 'Credits - The Snak'
         self.job = None
 
-        scrollbar = Scrollbar(self, bg=globals.UI_OUTLINE, troughcolor=globals.BOARD_COLOR)
+        scrollbar = GameScrollbar(self)
         scrollbar.pack(side=RIGHT, fill=Y)
 
-        listbox = Listbox(self, bg=globals.BOARD_COLOR, fg=globals.UI_OUTLINE, disabledforeground=globals.UI_OUTLINE, highlightbackground=globals.UI_OUTLINE)
+        listbox = GameListbox(self)
         listbox.pack(fill=BOTH, expand=1)
 
         self.startup = lambda: (
@@ -36,7 +37,7 @@ class Credits(Frame):
         listbox.insert(END, 'informatics project')
         listbox.insert(END, '')
         listbox.insert(END, 'Github: lampask')
-        listbox.insert(END, 'Twitter: @Lampask_1')
+        listbox.insert(END, 'Twitter: @lampask_1')
         listbox.insert(END, '')
         listbox.insert(END, 'Thank you for playing ^-^')
 

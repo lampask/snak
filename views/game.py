@@ -4,15 +4,16 @@ import string
 from PIL import ImageTk
 from tkinter import Frame, Canvas, ALL, NW, Button, CENTER, FLAT
 import helpers.utils as utils
+from helpers.utils import GameCanvas, GameFrame
 import globals.globals as globals
 import globals.constants as constants
 
-class Board(Canvas):
+class Board(GameCanvas):
 
     def __init__(self, parent):
-        Canvas.__init__(self, master=parent, width=globals.BOARD_WIDTH, height=globals.BOARD_HEIGHT,
-                        background="black", highlightthickness=0)
-        self.initGame()
+        GameCanvas.__init__(self, parent)
+        self.job = None
+        self.parent = parent
         self.bind_all('p', self.pause)
         self.bind_all('r', self.restart)
         self.pack()
@@ -61,7 +62,7 @@ class Board(Canvas):
         '''creates objects on Canvas'''
 
         self.create_text(30, 10, text="Score: {0}".format(self.score),
-                         tag="score", fill=globals.UI_OUTLINE)
+                         tag="score", fill=globals.UI_OUTLINE.get())
         self.create_image(self.appleX, self.appleY, image=self.apple,
                           anchor=NW, tag="apple")
         self.create_image(50, 50, image=self.head, anchor=NW, tag="head")
@@ -86,8 +87,8 @@ class Board(Canvas):
                 self.create_image(x, y, image=self.dot, anchor=NW, tag="dot")
                 self.locateApple()
 
-    def moveSnake(self):
-        '''moves the Snake object'''
+    def moveSnak(self):
+        '''moves the Snak object'''
 
         dots = self.find_withtag("dot")
         head = self.find_withtag("head")
@@ -116,19 +117,24 @@ class Board(Canvas):
         for dot in dots:
             for over in overlap:
                 if over == dot:
+                    globals.stats['Suicides'].set(globals.stats['Suicides'].get()+1)
                     self.inGame = False
 
-        if x1 < 0:
+        def border_collided():
+            globals.stats['Wall_deaths'].set(globals.stats['Wall_deaths'].get()+1)
             self.inGame = False
+
+        if x1 < 0:
+            border_collided()
 
         if x1 > globals.BOARD_WIDTH - globals.DOT_SIZE:
-            self.inGame = False
+            border_collided()
 
         if y1 < 0:
-            self.inGame = False
+            border_collided()
 
         if y1 > globals.BOARD_HEIGHT - globals.DOT_SIZE:
-            self.inGame = False
+            border_collided()
 
     def locateApple(self):
         '''places the apple object on Canvas'''
@@ -185,12 +191,12 @@ class Board(Canvas):
 
         if self.inGame:
             self.checkAppleCollision()
-            self.moveSnake()
+            self.moveSnak()
             if not globals.gamePaused:
                 self.event_generate('<<Tick>>')
             else:
                 self.create_text(self.winfo_width()/2, self.winfo_height()/2,
-                                 text="Game is Paused", fill=globals.UI_OUTLINE, tag="pause")
+                                 text="Game is Paused", fill=globals.UI_OUTLINE.get(), tag="pause")
         else:
             self.gameOver()
 
@@ -209,15 +215,24 @@ class Board(Canvas):
         '''deletes all objects and draws game over message'''
 
         globals.gameStatus = globals.GameState.GAME_OVER
+        if self.score > globals.stats['Highscore'].get():
+            globals.stats['Highscore'].set(self.score)
         self.delete(ALL)
         self.create_text(self.winfo_width()/2, self.winfo_height()/2,
-                         text="Game Over with score {0}".format(self.score), fill=globals.UI_OUTLINE)
-        self.retry = Button(self, text="Retry", command=lambda: self.restart(None), anchor=CENTER)
-        self.retry.configure(width=constants.UI_BUTTON_WIDTH, background=globals.BOARD_COLOR, foreground=globals.UI_OUTLINE,
-                             highlightbackground=globals.UI_OUTLINE, activebackground=globals.UI_OUTLINE, highlightthickness=5, relief=FLAT)
+                         text="Game Over with score {0}".format(self.score), fill=globals.UI_OUTLINE.get())
+        self.retry = Button(self, text="Retry", command=self.restart, anchor=CENTER)
+        self.retry.configure(width=constants.UI_BUTTON_WIDTH, background=globals.BOARD_COLOR.get(), foreground=globals.UI_OUTLINE.get(),
+                             highlightbackground=globals.UI_OUTLINE.get(), activebackground=globals.UI_OUTLINE.get(), highlightthickness=5, relief=FLAT)
         self.create_window(globals.BOARD_WIDTH/2, 20*constants.UI_BUTTON_WIDTH, anchor=CENTER, window=self.retry)
 
-    def restart(self, e):
+        self.back = Button(self, text="Back", command=lambda: self.parent.controller.show_frame("Startup"), anchor=CENTER)
+        self.back.configure(width=constants.UI_BUTTON_WIDTH, background=globals.BOARD_COLOR.get(), foreground=globals.UI_OUTLINE.get(),
+                            highlightbackground=globals.UI_OUTLINE.get(), activebackground=globals.UI_OUTLINE.get(), highlightthickness=5, relief=FLAT)
+        self.create_window(globals.BOARD_WIDTH/2, 25*constants.UI_BUTTON_WIDTH, anchor=CENTER, window=self.back)
+
+    def restart(self, e=None):
+        globals.gamePaused = False
+        globals.stats['Games_played'].set(globals.stats['Games_played'].get()+1)
         self.delete(ALL)
         if self.job is not None:
             self.after_cancel(self.job)
@@ -229,13 +244,14 @@ class Board(Canvas):
             self.event_generate('<<Tick>>')
         else:
             globals.gamePaused = True
+            globals.stats['Pauses'].set(globals.stats['Pauses'].get()+1)
 
-class Snak(Frame):
+
+class Snak(GameFrame):
 
     def __init__(self, parent, controller):
-        Frame.__init__(self, parent)
+        GameFrame.__init__(self, parent)
         self.controller = controller
         self.title = 'The Snak game'
-
-        globals.gamePaused = False
         self.board = Board(self)
+        self.startup = self.board.restart
